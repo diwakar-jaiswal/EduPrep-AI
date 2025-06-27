@@ -4,13 +4,19 @@ import { feedbackSchema } from "@/constants";
 import { db } from "@/firebase/admin";
 import { google } from "@ai-sdk/google";
 import { generateObject } from "ai";
+import { limit } from "firebase/firestore";
+
+
+const limitValue = typeof limit === 'number' ? limit : 10;
 
 export async function getInterviewsByUserId(userId: string): Promise<Interview[] | null> {
     const interviews = await db
-      .collection('interviews')
-      .where('userId', '==', userId)
-      .orderBy('createdAt', 'desc')
-      .get();
+  .collection('interviews')
+  .where('finalized', '==', true)
+  .where('userId', '!=', userId)
+  .orderBy('createdAt', 'desc')
+  .limit(limitValue)
+  .get();
 
     return interviews.docs.map((doc) => ({
         id: doc.id,
